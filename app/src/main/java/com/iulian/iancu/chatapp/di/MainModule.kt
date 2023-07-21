@@ -1,12 +1,10 @@
-package com.iulian.iancu.chatapp
+package com.iulian.iancu.chatapp.di
 
 import android.content.Context
 import androidx.room.Room
 import com.iulian.iancu.data.ChatRepositoryImpl
 import com.iulian.iancu.data.MessageDAO
 import com.iulian.iancu.data.MessageDatabase
-import com.iulian.iancu.domain.GetChatUseCase
-import com.iulian.iancu.domain.SendMessageUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,12 +17,12 @@ import javax.inject.Singleton
 class MainModule {
 
     @Provides
-    fun provideGetChatUseCase(repository: ChatRepositoryImpl): GetChatUseCase =
-        GetChatUseCase(repository)
+    fun provideGetChatUseCase(repository: ChatRepositoryImpl): com.iulian.iancu.domain.GetChatUseCase =
+        com.iulian.iancu.domain.GetChatUseCase(repository)
 
     @Provides
-    fun provideSendMessageUseCase(repository: ChatRepositoryImpl): SendMessageUseCase =
-        SendMessageUseCase(repository)
+    fun provideSendMessageUseCase(repository: ChatRepositoryImpl): com.iulian.iancu.domain.SendMessageUseCase =
+        com.iulian.iancu.domain.SendMessageUseCase(repository)
 
     @Provides
     fun provideChatRepository(messageDAO: MessageDAO): ChatRepositoryImpl =

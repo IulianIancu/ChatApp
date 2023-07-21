@@ -13,7 +13,4 @@ interface MessageDAO {
 
     @Query("SELECT * FROM LocalMessage ORDER BY timestamp")
     fun getMessagesByLatest(): Flow<List<LocalMessage>>
-
-    @Query("DROP TABLE LocalMessage")
-    fun deleteMessages()
 }
