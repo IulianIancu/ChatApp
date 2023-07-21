@@ -30,9 +30,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,8 +48,11 @@ import com.iulian.iancu.chatapp.ui.theme.PinkHot
 import com.iulian.iancu.domain.Message
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.math.max
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @AndroidEntryPoint
@@ -74,14 +79,22 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun Content(messages: State<List<Message>>) {
         Column(modifier = Modifier.fillMaxSize()) {
+            val lazyColumnListState = rememberLazyListState()
+            val coroutineScope = rememberCoroutineScope()
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
+                verticalArrangement = Arrangement.Bottom,
+                state = lazyColumnListState
             ) {
                 items(messages.value) {
+                    /*This whole when condition is kind of stinky,
+                    * But this is what I came up with on how to decide which side the chat bubbles should be in
+                    * Ideally this bit of logic should live in the ViewModel and the view should get a mixed list
+                    * entities.
+                    * */
                     when (it.author) {
                         "ME" -> MyMessage(message = it.text)
                         "OTHER" -> OtherMessage(message = it.text)
@@ -96,6 +109,9 @@ class MainActivity : ComponentActivity() {
                             ).format(it.timestamp)
                         )
                     }
+                }
+                coroutineScope.launch {
+                    lazyColumnListState.scrollToItem(max(messages.value.size - 1, 0))
                 }
             }
             Row(
