@@ -1,12 +1,17 @@
 package com.iulian.iancu.data
 
+import com.iulian.iancu.domain.ChatRepository
 import com.iulian.iancu.domain.Message
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class ChatRepositoryImpl(val database: MessageDAO) : com.iulian.iancu.domain.ChatRepository {
+/**
+ * This is an implementation of ChatRepository that only uses a local DB as a source,
+ * can be replaced with something that uses Network calls at a later point
+ * */
+class ChatRepositoryImpl(private val database: MessageDAO) : ChatRepository {
     override suspend fun getAllChat(): Flow<List<Message>> {
         return database.getMessagesByLatest()
             .map { it.map { localMessage -> localMessage.toEntity() } }
