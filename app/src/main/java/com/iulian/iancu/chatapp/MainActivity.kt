@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,6 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,7 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iulian.iancu.chatapp.ui.theme.ChatAppTheme
 import com.iulian.iancu.chatapp.ui.theme.PinkHot
+import com.iulian.iancu.domain.Message
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.coroutineScope
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @AndroidEntryPoint
@@ -56,14 +64,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Content()
+                    val messages = viewModel.messagesList.collectAsState()
+                    Content(messages)
                 }
             }
         }
     }
 
     @Composable
-    fun Content() {
+    fun Content(messages: State<List<Message>>) {
         Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier
@@ -72,13 +81,20 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Bottom
             ) {
-                for (i in 1..25) {
-                    item {
-                        when (i % 3) {
-                            1 -> MyMessage(message = "Marco")
-                            2 -> OtherMessage(message = "Pollo")
-                            else -> Separator(day = "Yesterday", time = "12:60")
-                        }
+                items(messages.value) {
+                    when (it.author) {
+                        "ME" -> MyMessage(message = it.text)
+                        "OTHER" -> OtherMessage(message = it.text)
+                        else -> Separator(
+                            day = SimpleDateFormat(
+                                "EEEE",
+                                Locale.getDefault()
+                            ).format(it.timestamp),
+                            time = SimpleDateFormat(
+                                "h:mm a",
+                                Locale.getDefault()
+                            ).format(it.timestamp)
+                        )
                     }
                 }
             }
@@ -86,9 +102,10 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val currentMessage by viewModel.currentMessage.collectAsState()
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = currentMessage,
+                    onValueChange = { viewModel.onCurrentMessageChanged(it) },
                     modifier = Modifier
                         .weight(1f)
                         .padding(8.dp),
@@ -98,7 +115,10 @@ class MainActivity : ComponentActivity() {
                     shape = RoundedCornerShape(32.dp)
                 )
                 FilledIconButton(
-                    onClick = { /*TODO*/ }
+                    onClick = {
+                        viewModel.sendMessage()
+                        viewModel.onCurrentMessageChanged("")
+                    }
                 ) {
                     Icon(Icons.Filled.Send, contentDescription = "Send Message")
                 }
@@ -177,7 +197,7 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                Content()
+
             }
         }
     }
