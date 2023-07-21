@@ -43,6 +43,10 @@ class MainViewModel @Inject constructor(
             delay(500)
             if (message.contains("marco", true)) {
                 sendMessageUseCase(Message("POLO", "OTHER", Calendar.getInstance().time))
+                /*This is NOT how I originally wanted to do separators for the headers. I meant to group them by days
+                 * but I was running out of time and patience. So we brute force a separator in the database :(
+                 * Separators should only exists in active memory
+                 */
                 sendMessageUseCase(Message("1", "SEPARATOR", Calendar.getInstance().time))
             }
         }
